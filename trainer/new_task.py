@@ -1,4 +1,4 @@
-from model import  FRVSR_model
+from model import  FRVSR_model_2
 from keras.optimizers import Adam
 import imageio
 import numpy as np
@@ -16,7 +16,7 @@ batch_size = 4
 
 def read_file_names():
     file_names = []
-    for (root, dirs, files) in os.walk('Data'):
+    for (root, dirs, files) in os.walk('data2'):
         for dir in dirs:
             file_names.append(os.path.join(root, dir))
     print("Loaded ", len(file_names))
@@ -50,10 +50,37 @@ def generator1(filenames):
         result, l = [np.asarray(batch_list), low_res_black, high_res_black], np.asarray(label_list)
         yield result, l
 
+# def generator(filenames):
+#     batch_list1 = [None] * batch_size
+#     label_list1 = [None] * batch_size
+#     batch_list2 = [None] * batch_size
+#     label_list2 = [None] * batch_size
+#     low_res_black = np.zeros((batch_size, input_size[1], input_size[0], 3))
+#     high_res_black = np.zeros((batch_size, output_size[1], output_size[0], 3))
+#     while True:
+#         for i in range(batch_size):
+#             index = random.choice(range(len(filenames)))
+#             image_names = read_image_names(filenames[index])
+#             low_res_list = []
+#             high_res_list = []
+#             for j in range(0, len(image_names)):
+#                 # print(image_names,'im len')
+#                 high_res, low_res = read_image(image_names[j])
+#                 low_res_list.append(low_res)
+#                 high_res_list.append(high_res)
+#             batch_list1[i] = low_res_list[0]
+#             label_list1[i] = high_res_list[0]
+#             batch_list2[i] = low_res_list[1]
+#             label_list2[i] = high_res_list[1]
+#
+#         result, l = [np.asarray(batch_list1), np.asarray(batch_list2), low_res_black, high_res_black], [np.asarray(label_list1),np.asarray(label_list1)]
+#         yield result, l
 
 def generator(filenames):
-    batch_list = [None] * batch_size
-    label_list = [None] * batch_size
+    batch_list1 = [None] * batch_size
+    label_list1 = [None] * batch_size
+    batch_list2 = [None] * batch_size
+    label_list2 = [None] * batch_size
     low_res_black = np.zeros((batch_size, input_size[1], input_size[0], 3))
     high_res_black = np.zeros((batch_size, output_size[1], output_size[0], 3))
     while True:
@@ -63,14 +90,18 @@ def generator(filenames):
             low_res_list = []
             high_res_list = []
             for j in range(0, len(image_names)):
+                # print(image_names,'im len')
                 high_res, low_res = read_image(image_names[j])
-                low_res_list.append(low_res_list)
-                high_res_list.append(high_res_list)
-            batch_list[i] = low_res_list
-            label_list[i] = high_res_list
+                low_res_list.append(low_res)
+                high_res_list.append(high_res)
+            batch_list1[i] = low_res_list[0]
+            label_list1[i] = high_res_list[0]
+            batch_list2[i] = low_res_list[1]
+            label_list2[i] = high_res_list[1]
 
-        result, l = [np.asarray(batch_list), low_res_black, high_res_black], np.asarray(label_list)
+        result, l = [np.asarray(batch_list1), np.asarray(batch_list2), low_res_black, high_res_black], [np.asarray(label_list1),np.asarray(label_list1)]
         yield result, l
+
 
 if __name__ == '__main__':
     KTF.set_session(tf.Session(config=tf.ConfigProto(device_count={'gpu': 0})))
@@ -80,7 +111,7 @@ if __name__ == '__main__':
 
     #low_res, high_res = read_input()
     filenames = read_file_names()
-    superes_net = FRVSR_model((input_size[1], input_size[0], 3), (output_size[1], output_size[0], 3))
+    superes_net = FRVSR_model_2((input_size[1], input_size[0], 3), (output_size[1], output_size[0], 3))
     # create the FRVSR object
     superes_net.model.compile(
         optimizer=Adam(lr=adam_lr),
