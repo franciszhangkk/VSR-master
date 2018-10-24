@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 from model import FRVSR_model
+=======
+from model import  FRVSR_model_2
+>>>>>>> 91784677090d23f0e5e080c535bc3c042e281a4a
 from keras.optimizers import Adam
 import imageio
 import numpy as np
@@ -17,7 +21,7 @@ batch_size = 4
 
 def read_file_names():
     file_names = []
-    for (root, dirs, files) in os.walk('Data'):
+    for (root, dirs, files) in os.walk('data2'):
         for dir in dirs:
             file_names.append(os.path.join(root, dir))
     print("Loaded ", len(file_names))
@@ -53,9 +57,35 @@ def generator1(filenames):
         result, l = [np.asarray(batch_list), low_res_black, high_res_black], np.asarray(label_list)
         yield result, l
 
+# def generator(filenames):
+#     batch_list1 = [None] * batch_size
+#     label_list1 = [None] * batch_size
+#     batch_list2 = [None] * batch_size
+#     label_list2 = [None] * batch_size
+#     low_res_black = np.zeros((batch_size, input_size[1], input_size[0], 3))
+#     high_res_black = np.zeros((batch_size, output_size[1], output_size[0], 3))
+#     while True:
+#         for i in range(batch_size):
+#             index = random.choice(range(len(filenames)))
+#             image_names = read_image_names(filenames[index])
+#             low_res_list = []
+#             high_res_list = []
+#             for j in range(0, len(image_names)):
+#                 # print(image_names,'im len')
+#                 high_res, low_res = read_image(image_names[j])
+#                 low_res_list.append(low_res)
+#                 high_res_list.append(high_res)
+#             batch_list1[i] = low_res_list[0]
+#             label_list1[i] = high_res_list[0]
+#             batch_list2[i] = low_res_list[1]
+#             label_list2[i] = high_res_list[1]
+#
+#         result, l = [np.asarray(batch_list1), np.asarray(batch_list2), low_res_black, high_res_black], [np.asarray(label_list1),np.asarray(label_list1)]
+#         yield result, l
 
 def generator(filenames):
     batch_list1 = [None] * batch_size
+<<<<<<< HEAD
     batch_list2 = [None] * batch_size
     batch_list3 = [None] * batch_size
     batch_list4 = [None] * batch_size
@@ -66,6 +96,11 @@ def generator(filenames):
     label_list4 = [None] * batch_size
     label_list5 = [None] * batch_size
 
+=======
+    label_list1 = [None] * batch_size
+    batch_list2 = [None] * batch_size
+    label_list2 = [None] * batch_size
+>>>>>>> 91784677090d23f0e5e080c535bc3c042e281a4a
     low_res_black = np.zeros((batch_size, input_size[1], input_size[0], 3))
     high_res_black = np.zeros((batch_size, output_size[1], output_size[0], 3))
     while True:
@@ -75,6 +110,7 @@ def generator(filenames):
             low_res_list = []
             high_res_list = []
             for j in range(0, len(image_names)):
+                # print(image_names,'im len')
                 high_res, low_res = read_image(image_names[j])
                 low_res_list.append(low_res)
                 high_res_list.append(high_res)
@@ -82,6 +118,7 @@ def generator(filenames):
             label_list1[i] = high_res_list[0]
             batch_list2[i] = low_res_list[1]
             label_list2[i] = high_res_list[1]
+<<<<<<< HEAD
             batch_list3[i] = low_res_list[2]
             label_list3[i] = high_res_list[2]
             batch_list4[i] = low_res_list[3]
@@ -91,6 +128,10 @@ def generator(filenames):
 
         result, l = [np.asarray(batch_list1), np.asarray(batch_list2), np.asarray(batch_list3), np.asarray(batch_list4),
                      np.asarray(batch_list5), low_res_black, high_res_black], [np.asarray(label_list1), np.asarray(label_list2), np.asarray(label_list3), np.asarray(label_list4), np.asarray(label_list5)]
+=======
+
+        result, l = [np.asarray(batch_list1), np.asarray(batch_list2), low_res_black, high_res_black], [np.asarray(label_list1),np.asarray(label_list1)]
+>>>>>>> 91784677090d23f0e5e080c535bc3c042e281a4a
         yield result, l
 
 
@@ -102,7 +143,7 @@ if __name__ == '__main__':
 
     # low_res, high_res = read_input()
     filenames = read_file_names()
-    superes_net = FRVSR_model((input_size[1], input_size[0], 3), (output_size[1], output_size[0], 3))
+    superes_net = FRVSR_model_2((input_size[1], input_size[0], 3), (output_size[1], output_size[0], 3))
     # create the FRVSR object
     superes_net.model.compile(
         optimizer=Adam(lr=adam_lr),
