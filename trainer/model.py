@@ -89,7 +89,12 @@ class SuperResolutionNetwork:
 class LocalizationNetwork:
     def __init__(self, input_shape, init_weights):
         self.model = Sequential()
-        input_shape = (512, 512, 5)
+
+        input_shape = list(input_shape)
+        input_shape = input_shape[1:]
+        input_shape = tuple(input_shape)
+
+        # input_shape = (512, 512, 5)
         self.model.add(MaxPooling2D(pool_size=(2, 2), input_shape=input_shape))
         self.model.add(Conv2D(20, (5, 5)))
         self.model.add(MaxPooling2D(pool_size=(2, 2)))
@@ -366,3 +371,93 @@ class FRVSR_model_2:
 
         self.model = Model(inputs=[lr_input1, lr_input2, low_res_black, high_res_black],
                            outputs=[hr_output1, hr_output2])
+
+class MCFRVSR_Layer:
+    def __init__(self, low_res_shape, high_res_shape, flow_shape):
+        flow_network_shape = list(low_res_shape)
+        flow_network_shape[-1] = low_res_shape[-1] + high_res_shape[-1]
+        flow_network_shape = tuple(flow_network_shape)
+
+        flow_network = FlowNetwork(flow_network_shape)
+        # initial the flow net, this net is used to find the flow between next_frame and current_frame
+
+        super_resolution_network_shape = list(low_res_shape)
+        super_resolution_network_shape[-1] = low_res_shape[-1]*2 + high_res_shape[-1] * 4
+        # The reason of *4 is space to depth and the reason of *2 is two low_res frame
+        super_resolution_network_shape = tuple(super_resolution_network_shape)
+
+        super_resolution_network = SuperResolutionNetwork(super_resolution_network_shape)
+        # initial the sr net, this net need concatnate 3 frame
+
+        low_res_inputs = Input(shape=low_res_shape)
+        low_res_next_inputs = Input(shape=low_res_shape)
+        previous_frame_input = Input(shape=high_res_shape)
+        t_minus_flow = Input(shape=flow_shape)
+        # finish initial the input
+
+
+        flow_network_input = Concatenate()([low_res_inputs, low_res_next_inputs])
+        t_plus_flow = flow_network.model(flow_network_input)
+
+        #following is the warp for previous high resolution frame
+        flow_high_resolution = UpSampling2DBilinear()(t_minus_flow)
+        warp_input_previous = Concatenate()([previous_frame_input, flow_high_resolution])
+        warped_high = Warp()(warp_input_previous)
+        warped_high = Lambda(lambda x: x[:, :, :, :3])(warped_high)
+        warped_high_to_depth = SpaceToDepth()(warped_high)
+
+        # following is the warp for next frame
+        warp_input_next = Concatenate()([low_res_next_inputs, t_plus_flow])
+        warped_low = Warp()(warp_input_next)
+        warped_low = Lambda(lambda x: x[:, :, :, :3])(warped_low)
+
+        super_resolution_network_input = Concatenate()([low_res_inputs, warped_high_to_depth, warped_low])
+        output_hr = super_resolution_network.model(super_resolution_network_input)
+
+        self.model = Model(inputs=[low_res_inputs, low_res_next_inputs, previous_frame_input, t_minus_flow], outputs=[output_hr, t_plus_flow])
+
+class MCFRVSR_model:
+    def __init__(self, low_res_shape, high_res_shape, flow_shape):
+        sr_layer = MCFRVSR_Layer(low_res_shape, high_res_shape, flow_shape)
+
+        low_res_black = Input(shape=low_res_shape)
+        high_res_black = Input(shape=high_res_shape)
+        flow_pre = Input(shape=flow_shape)
+
+        lr_input1 = Input(shape=low_res_shape)
+        lr_input2 = Input(shape=low_res_shape)
+
+        hr_output1, flow1 = sr_layer.model([lr_input1, lr_input2, high_res_black, flow_pre])
+        hr_output2, flow2 = sr_layer.model([lr_input2, low_res_black, hr_output1, flow1])
+
+        self.model = Model(inputs=[lr_input1, lr_input2, low_res_black, high_res_black, flow_pre],
+                           outputs=[hr_output1, hr_output2])
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
