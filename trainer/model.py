@@ -436,6 +436,39 @@ class MCFRVSR_model:
 
 
 
+class MCFRVSR_model5:
+    def __init__(self, low_res_shape, high_res_shape, flow_shape):
+        sr_layer = MCFRVSR_Layer(low_res_shape, high_res_shape, flow_shape)
+
+        low_res_black = Input(shape=low_res_shape)
+        high_res_black = Input(shape=high_res_shape)
+        flow_pre = Input(shape=flow_shape)
+
+        lr_input1 = Input(shape=low_res_shape)
+        lr_input2 = Input(shape=low_res_shape)
+        lr_input3 = Input(shape=low_res_shape)
+        lr_input4 = Input(shape=low_res_shape)
+        lr_input5 = Input(shape=low_res_shape)
+
+        hr_output1, flow1 = sr_layer.model([lr_input1, lr_input2, high_res_black, flow_pre])
+        hr_output2, flow2 = sr_layer.model([lr_input2, lr_input3, hr_output1, flow1])
+        hr_output3, flow3 = sr_layer.model([lr_input3, lr_input4, hr_output2, flow2])
+        hr_output4, flow4 = sr_layer.model([lr_input4, lr_input5, hr_output3, flow3])
+        hr_output5, flow5 = sr_layer.model([lr_input5, low_res_black, hr_output4, flow4])
+
+        self.model = Model(inputs=[lr_input1, lr_input2, lr_input3, lr_input4, lr_input5, low_res_black, high_res_black, flow_pre],
+                           outputs=[hr_output1, hr_output2, hr_output3, hr_output4, hr_output5])
+
+
+
+
+
+
+
+
+
+
+
 
 
 
