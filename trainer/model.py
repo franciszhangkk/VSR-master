@@ -345,11 +345,11 @@ class FRVSR_model:
         lr_input4 = Input(shape=low_res_shape)
         lr_input5 = Input(shape=low_res_shape)
 
-        hr_output1 = sr_layer.model([lr_input1, lr_input1, high_res_black])
+        hr_output1 = sr_layer.model([lr_input1, low_res_black, high_res_black])
         hr_output2 = sr_layer.model([lr_input2, lr_input1, hr_output1])
         hr_output3 = sr_layer.model([lr_input3, lr_input2, hr_output2])
         hr_output4 = sr_layer.model([lr_input4, lr_input3, hr_output3])
-        hr_output5 = sr_layer.model([lr_input5, lr_input5, hr_output4])
+        hr_output5 = sr_layer.model([lr_input5, lr_input4, hr_output4])
 
         self.model = Model(
             inputs=[lr_input1, lr_input2, lr_input3, lr_input4, lr_input5, low_res_black, high_res_black],

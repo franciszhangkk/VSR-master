@@ -9,16 +9,17 @@ import random
 import tensorflow as tf
 import keras.backend.tensorflow_backend as KTF
 from keras.callbacks import TensorBoard
+from keras.callbacks import EarlyStopping
 
 output_size = (256, 256)
 input_size = (128, 128)
 
-batch_size = 2
+batch_size = 4
 
 
 def read_file_names():
     file_names = []
-    for (root, dirs, files) in os.walk('data'):
+    for (root, dirs, files) in os.walk(r'C:\Users\Francis\Desktop\FRVSR-master\train_data'):
         for dir in dirs:
             file_names.append(os.path.join(root, dir))
     print("Loaded ", len(file_names))
@@ -30,7 +31,7 @@ def read_image_names(file):
     for root, _, files in os.walk(file):
         for filename in files:
             image_names.append(os.path.join(root, filename))
-    print("Loaded ", len(image_names))
+    # print("Loaded ", len(image_names))
     return image_names
 
 
@@ -125,11 +126,19 @@ def generator2(filenames):
         yield result, l
 
 
+
+
 if __name__ == '__main__':
-    KTF.set_session(tf.Session(config=tf.ConfigProto(device_count={'gpu': 0})))
-    adam_lr = 0.0004
+    config = tf.ConfigProto()
+    config.gpu_options.allow_growth = True
+
+
+
+    KTF.set_session(tf.Session(config=config))
+    adam_lr = 0.0001
 
     tensorboard = TensorBoard(log_dir="./logs", write_graph=True, write_images=True)
+    estop = EarlyStopping(patience=2, mode='min', verbose=0)
 
     # low_res, high_res = read_input()
     filenames = read_file_names()
@@ -138,15 +147,10 @@ if __name__ == '__main__':
     superes_net.model.compile(
         optimizer=Adam(lr=adam_lr),
         loss='mean_squared_error',
-        loss_weights=[1., 1., 1., 1., 1.])
+        #loss_weights=[1., 1., 1., 1., 1.]
+    )
 
-    # low_res_input = np.asarray(low_res)
-    # high_res_input = np.asarray(high_res)
-    # low_res_black = np.zeros(low_res_input.shape)
-    # high_res_black = np.zeros(high_res_input.shape)
-
-    # superes_net.model.fit([low_res_input, low_res_black, high_res_black], high_res_input, epochs=10, callbacks=[tensorboard], validation_split=0.2)
-    superes_net.model.fit_generator(generator2(filenames), epochs=10, samples_per_epoch=32, callbacks=[tensorboard])
+    superes_net.model.fit_generator(generator2(filenames), epochs=8, samples_per_epoch=21000, callbacks=[tensorboard,estop])
 
     superes_net.model.save("model.h5")
 
